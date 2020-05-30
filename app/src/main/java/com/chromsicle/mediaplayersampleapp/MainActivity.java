@@ -12,7 +12,17 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
-    MediaPlayer mediaPlayer;
+    //handles playback of all the sound files
+    private MediaPlayer mediaPlayer;
+
+    //this listener is triggered when the MediaPlayer completes playing the audio file
+    private MediaPlayer.OnCompletionListener mCompletionListener = new MediaPlayer.OnCompletionListener() {
+
+        @Override
+        public void onCompletion(MediaPlayer mediaPlayer) {
+            releaseMediaPlayer();
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,6 +34,11 @@ public class MainActivity extends AppCompatActivity {
         Button randomButton = findViewById(R.id.random_button);
         Button pauseButton = findViewById(R.id.pause_button);
         Button stopButton = findViewById(R.id.stop_button);
+
+        // release any previous playing audio before making a new MediaPlayer
+        // this is added because a user might be quickly playing the sounds and triggering new
+        // ones before the previous one actually completed
+        releaseMediaPlayer();
 
         //create the media player by using the song file in the raw directory
         mediaPlayer = MediaPlayer.create(this, R.raw.number_one);
@@ -77,7 +92,31 @@ public class MainActivity extends AppCompatActivity {
                 //prepared again to play it again
             }
         });
+    }
 
+    /**
+     * onStop method that will release the media player resources because they activity is navigated away from
+     */
+    @Override
+    protected void onStop() {
+        super.onStop();
+        releaseMediaPlayer();
+    }
 
+    /**
+     * Helper method for Cleaning up the media player by releasing its resources.
+     */
+    private void releaseMediaPlayer() {
+        // If the media player is not null, then it may be currently playing a sound.
+        if (mediaPlayer != null) {
+            // Regardless of the current state of the media player, release its resources
+            // because we no longer need it.
+            mediaPlayer.release();
+
+            // Set the media player back to null. For our code, we've decided that
+            // setting the media player to null is an easy way to tell that the media player
+            // is not configured to play an audio file at the moment.
+            mediaPlayer = null;
+        }
     }
 }
